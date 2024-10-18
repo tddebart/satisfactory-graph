@@ -1,0 +1,28 @@
+body {
+    background-color: #101214;
+    color: white;
+    margin:0;
+    width: 100vw;
+    height: 100vh;
+
+    --node-color: #606060;
+    --anchor-radius: 0%;
+    --anchor-color: #ff3737;
+    --anchor-hovering: none;
+    --anchor-connected: #37fb37;
+
+
+}
+
+.svelte-flow__connectionline {
+    z-index: unset !important;
+}
+
+.svelte-flow__edge {
+    --xy-edge-stroke-default: hsl(0, 0%, 70%);
+    --xy-edge-stroke-selected-default: hsl(0, 0%, 100%);
+}
+
+* {
+    box-sizing: border-box;
+}
