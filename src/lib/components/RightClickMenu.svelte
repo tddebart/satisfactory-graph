@@ -218,6 +218,7 @@
         padding: 10px;
         z-index: 999;
         max-height: 90vh;
+        user-select: none;
     }
 
     .recipes {
