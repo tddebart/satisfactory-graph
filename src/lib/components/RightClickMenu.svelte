@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { DocsRecipes, getInternalItemName, getItemImage, getRealItemName, ItemImages } from "$lib/JsonLoader";
+    import { DocsRecipes as recipes, getInternalItemName, getItemImage, getRealItemName, ItemImages } from "$lib/JsonLoader";
     import type { Recipe, RecipeName } from "$lib/types";
     import type { OnConnectEnd, XYPosition, Node, HandleProps } from "@xyflow/svelte";
     import { useNodes, useEdges, useSvelteFlow, useUpdateNodeInternals } from '@xyflow/svelte';
-
-    const recipes = DocsRecipes;
+    import { distance } from "fastest-levenshtein";
 
     const nodes = useNodes();
     const edges = useEdges();
@@ -58,7 +57,32 @@
             return false;
         });
 
-        // filteredRecipes = filteredRecipes.sort((a, b) => a.name.localeCompare(b.name));
+        filteredRecipes = filteredRecipes.sort((a, b) => {
+            const aName = a.name;
+            const bName = b.name;
+            const aInputs = a.ingredients.map(component => getRealItemName(component.item));
+            const bInputs = b.ingredients.map(component => getRealItemName(component.item));
+            const aOutputs = a.products.map(component => getRealItemName(component.item));
+            const bOutputs = b.products.map(component => getRealItemName(component.item));
+
+            const aNameDistance = distance(aName, value);
+            const bNameDistance = distance(bName, value);
+            const aInputsDistance = aInputs.map(input => distance(input, value)).reduce((a, b) => a + b, 0);
+            const bInputsDistance = bInputs.map(input => distance(input, value)).reduce((a, b) => a + b, 0);
+            const aOutputsDistance = aOutputs.map(output => distance(output, value)).reduce((a, b) => a + b, 0);
+            const bOutputsDistance = bOutputs.map(output => distance(output, value)).reduce((a, b) => a + b, 0);
+
+            // Sort on name, then inputs, then outputs
+            if ((filterByName || aOutputsDistance === bOutputsDistance) && aNameDistance !== bNameDistance) {
+                return aNameDistance - bNameDistance;
+            } else if (filterByInputs && aInputsDistance !== bInputsDistance) {
+                return aInputsDistance - bInputsDistance;
+            } else if (filterByOutputs && aOutputsDistance !== bOutputsDistance) {
+                return aOutputsDistance - bOutputsDistance;
+            }
+
+            return 0;
+        });
 
         // Calculate min widths
         inputsMinWidth = Math.max(...filteredRecipes.map(recipe => recipe.ingredients.length)) * iconWidth;
@@ -189,7 +213,7 @@
     </div>
     <input type="text" placeholder="Search" bind:value={searchString} on:input={filterRecipes} bind:this={inputElement}/>
     <div class="recipes">
-        {#each filteredRecipes.slice(0, 15) as recipe}
+        {#each filteredRecipes.slice(0, 20) as recipe}
             <div class="recipe" on:click={() => createNewNode(recipe)}>
                 <div class="inputs" style="min-width: {inputsMinWidth}px;">
                     {#each recipe.ingredients as component}
@@ -226,7 +250,7 @@
         flex-direction: column;
         gap: 5px;
         padding: 5px;
-        overflow-y: scroll;
+        overflow-y: auto;
         max-height: 70vh;
     }
 

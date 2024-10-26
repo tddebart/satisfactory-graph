@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getItemImage, ItemImages } from "$lib/JsonLoader";
+	import { getItemImage, getRealItemName, ItemImages } from "$lib/JsonLoader";
 	import type { Component } from "$lib/types";
     import { Handle, Position, type Connection, useEdges } from "@xyflow/svelte";
 
@@ -43,7 +43,7 @@
     {ondisconnect}
     class="{connected ? 'linked' : ''}"
 >
-    <img class="nodrag" src="icons/{ItemImages[component.item] ?? getItemImage(component.item, '256')}" alt={component.item}>
+    <img class="nodrag" src="icons/{ItemImages[component.item] ?? getItemImage(component.item, '256')}" alt="{getRealItemName(component.item)}" title={component.item} loading="lazy">
 </Handle>
 
 <style lang="scss">

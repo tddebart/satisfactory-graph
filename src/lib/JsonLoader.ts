@@ -8,10 +8,12 @@ import DocsRecipesImport from '$lib/data/DocsRecipes.json'
 const DocsRecipes = Object.fromEntries(Object.entries(DocsRecipesImport).map(([key, value]) => [key, value[0] as Recipe])) as { [key: RecipeName]: Recipe };
 // Filter out buildgun recipes
 for (const [key, value] of Object.entries(DocsRecipes)) {
-    if (value.inBuildGun || value.inCustomizer) {
+    if (value.inBuildGun || value.inCustomizer || value.inWorkshop) {
         delete DocsRecipes[key];
     }
 }
+
+initOres();
 
 export { DocsBuildings, DocsItems, DocsRecipes };
 
@@ -34,7 +36,6 @@ export const ItemImages: { [key: ItemName]: string } = {
     "Desc_Water_C": "IconDesc_LiquidWater_Pipe_256.png",
     "Desc_Cable_C": "IconDesc_Cables_256.png",
     "BP_EquipmentDescriptorShockShank_C": "IconDesc_XenoZapper_256.png",
-    "Desc_OreIron_C": "IconDesc_iron_new_256.png",
     "Desc_Coal_C": "IconDesc_CoalOre_256.png",
     "Desc_RocketFuel_C": "IconDesc_RocketFuelPipe_256.png",
     "Desc_GasTank_C": "IconDesc_PressureTank_256.png",
@@ -42,6 +43,12 @@ export const ItemImages: { [key: ItemName]: string } = {
     "Desc_LiquidTurboFuel_C": "IconDesc_LiquidTurboFuel_Pipe_256.png",
     "Desc_SAMIngot_C": "IconDesc_SameOre_256.png",
     "Desc_AluminumPlate_C": "IconDesc_AluminiumSheet_256.png",
+    "Desc_OreIron_C": "IconDesc_iron_new_256.png",
+    "Desc_OreCopper_C": "IconDesc_copper_new_256.png",
+    "Desc_OreBauxite_C": "IconDesc_Bauxite_256.png",
+    "Desc_OreGold_C": "IconDesc_CateriumOre_256.png",
+    "Desc_GoldIngot_C": "IconDesc_CateriumIngot_256.png",
+    "Desc_OreUranium_C": "IconDesc_UraniumOre_256.png",
 }
 
 export function getItemImage(item: string, type: string = '512'): string {
@@ -57,4 +64,44 @@ export function getRealItemName(item: ItemName): string {
 
 export function getInternalItemName(item: ItemName): string {
     return Object.values(DocsItems).find((value) => value[0].name === item)[0].className;
+}
+
+function initOres() {
+    const ores = {
+        'Desc_OreIron_C': 'Iron Ore',
+        'Desc_OreCopper_C': 'Copper Ore',
+        'Desc_OreBauxite_C': 'Bauxite',
+        'Desc_OreGold_C': 'Caterium Ore',
+        'Desc_OreUranium_C': 'Uranium Ore',
+    }
+
+    for (const [key, name] of Object.entries(ores)) {
+        DocsRecipes[key] = {
+            className: key,
+            name: name,
+            unlockedBy: "Onboarding",
+            duration: 1,
+            ingredients: [],
+            products: [
+                {
+                    item: key,
+                    amount: 1
+                }
+            ],
+            producedIn: [
+                "Desc_MinerMk1_C"
+            ],
+            inCraftBench: false,
+            inWorkshop: false,
+            inBuildGun: false,
+            inCustomizer: false,
+            manualCraftingMultiplier: 1,
+            alternate: false,
+            minPower: null,
+            maxPower: null,
+            seasons: [],
+            experimental: true,
+            stable: true
+        };
+    }
 }
