@@ -23,6 +23,10 @@ body {
     --xy-edge-stroke-selected-default: hsl(0, 0%, 100%);
 }
 
+.svelte-flow__attribution {
+    user-select: none;
+}
+
 * {
     box-sizing: border-box;
 }
