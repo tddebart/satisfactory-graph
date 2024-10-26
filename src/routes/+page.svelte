@@ -1,16 +1,23 @@
 <script lang="ts">
+    import '@xyflow/svelte/dist/style.css';
+
     import { browser } from '$app/environment';
     import '$lib/index';
     import '$lib/JsonLoader';
-    import { SvelteFlow, SvelteFlowProvider, Background, Controls, MiniMap, ConnectionMode } from '@xyflow/svelte';
-    import type { Node, Edge, Connection } from '@xyflow/svelte';
+    import { SvelteFlow, SvelteFlowProvider, Background, Controls, MiniMap } from '@xyflow/svelte';
+    import type { Node, Edge, OnConnectEnd } from '@xyflow/svelte';
     import { writable } from 'svelte/store';
     import CustomNode from '$lib/components/CustomNode.svelte';
     import createUndoable from '$lib/Undoable';
     import { getStoreValue } from '$lib/util';
+    import RightClickMenu from '$lib/components/RightClickMenu.svelte';
+
+    let onconnectend: OnConnectEnd;
+    let onContextmenu: (event: MouseEvent) => void;
+    let hideRightClickMenu: () => void;
 
     const nodeTypes = {
-        'custom': CustomNode
+        'custom': CustomNode,
     };
 
     const nodes = writable<Node[]>([
@@ -41,7 +48,15 @@
     ]);
     const nodeUndoable = createUndoable(nodes);
 
-    const edges = writable<Edge[]>([{ id: '1Desc_CopperSheet_C-2Desc_CopperSheet_C', source: '1', target: '2', sourceHandle: 'Desc_CopperSheet_C', targetHandle: 'Desc_CopperSheet_C' }]);
+    const edges = writable<Edge[]>([
+        {
+            id: '1Desc_CopperSheet_C-2Desc_CopperSheet_C',
+            source: '1',
+            target: '2',
+            sourceHandle: 'Desc_CopperSheet_C',
+            targetHandle: 'Desc_CopperSheet_C',
+        },
+    ]);
     const edgeUndoable = createUndoable(edges);
 
     if (browser) {
@@ -52,7 +67,7 @@
             if (e.key === 'z' && e.ctrlKey) {
                 undo();
             }
-        })
+        });
     }
 
     function oninit() {
@@ -71,7 +86,9 @@
 
         // Sanity check
         if (nodeUndoable.historyIndex() != edgeUndoable.historyIndex()) {
-            console.error(`Undo/redo history mismatch: ${nodeUndoable.historyIndex()} != ${edgeUndoable.historyIndex()}`);
+            console.error(
+                `Undo/redo history mismatch: ${nodeUndoable.historyIndex()} != ${edgeUndoable.historyIndex()}`,
+            );
         }
     }
 
@@ -81,28 +98,48 @@
 
         // Sanity check
         if (nodeUndoable.historyIndex() != edgeUndoable.historyIndex()) {
-            console.error(`Undo/redo history mismatch: ${nodeUndoable.historyIndex()} != ${edgeUndoable.historyIndex()}`);
+            console.error(
+                `Undo/redo history mismatch: ${nodeUndoable.historyIndex()} != ${edgeUndoable.historyIndex()}`,
+            );
         }
+    }
+
+    function updateGraph() {
+        $nodes = $nodes;
+        $edges = $edges;
+        saveHistory();
     }
 </script>
 
 <SvelteFlowProvider>
-    <SvelteFlow
-        {nodes}
-        {edges}
-        {nodeTypes}
-        colorMode="dark"
-        fitView
-        onlyRenderVisibleElements
-        deleteKey="Delete"
-        {oninit}
-        onconnect={saveHistory}
-        ondelete={saveHistory}
-        on:nodedragstop={saveHistory}
-
+    <div
+        style="width: 100vw; height: 100vh"
+        on:contextmenu={onContextmenu}
+        on:click={() => hideRightClickMenu()}
     >
-        <Background />
-        <Controls />
-        <MiniMap />
-    </SvelteFlow>
+        <SvelteFlow
+            {nodes}
+            {edges}
+            {nodeTypes}
+            colorMode="dark"
+            fitView
+            onlyRenderVisibleElements
+            deleteKey="Delete"
+            {onconnectend}
+            {oninit}
+            onconnect={saveHistory}
+            ondelete={saveHistory}
+            on:nodedragstop={saveHistory}
+        >
+            <Background />
+            <Controls />
+            <MiniMap />
+        </SvelteFlow>
+    </div>
+    <RightClickMenu
+        bind:onconnectend
+        bind:onContextmenu
+        bind:hide={hideRightClickMenu}
+        {updateGraph}
+    />
 </SvelteFlowProvider>

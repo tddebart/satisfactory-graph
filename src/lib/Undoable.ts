@@ -27,14 +27,12 @@ export default function createUndoable<T>(store: Writable<T>): Undoable<T> {
 			historyStore.set(history);
 		},
 		undo: (): void => {
-			console.log(historyIndex)
 			if (historyIndex > 0) {
 				historyIndex--;
 				updateStore();
 			}
 		},
 		redo: (): void => {
-			console.log(historyIndex)
 			if (historyIndex < history.length - 1) {
 				historyIndex++;
 				updateStore();
